@@ -213,6 +213,16 @@ int32_t main(void) {
         assert(parse_doc(doc, &parsed, release, sizeof(release)) == 0);
         assert(!parsed.geometry.pselect_waiter_shift.has_value());
 
+        /* The select route's byte offset for the stale waiter round-trips. */
+        doc = build_doc(
+            ghostlock::profile::kRouteSelectStack, "selof",
+            {
+                {"route.select_stack", {{"waiter_off", 174}}},
+            });
+        assert(parse_doc(doc, &parsed, release, sizeof(release)) == 0);
+        assert(parsed.geometry.pselect_waiter_off.has_value() &&
+               *parsed.geometry.pselect_waiter_off == 174);
+
         /* The zc overlay word offsets decode into the execution settings. */
         doc = build_doc(
             ghostlock::profile::kRouteTcpZerocopy, "zcwords",

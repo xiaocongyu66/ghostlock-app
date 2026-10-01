@@ -179,6 +179,7 @@ namespace ghostlock::binary_profile {
 
         constexpr Field kRouteSelect[] = {
             OPT("waiter_shift", geometry.pselect_waiter_shift),
+            OPT("waiter_off", geometry.pselect_waiter_off),
             OPT("compact_waiter", misc.compact_waiter),
             PLAIN("enter_delay_us", execution.select_enter_delay_us),
             PLAIN("timeout_us", execution.select_timeout_us),
