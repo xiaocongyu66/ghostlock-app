@@ -84,18 +84,26 @@
         __android_log_print(ANDROID_LOG_INFO, "google_poc_app", "[+] %s:%d " fmt, __FILE__, __LINE__, ##__VA_ARGS__); \
     } while (0)
 #else
+#define GHOSTLOCK_PERSIST_LOG() do { \
+        fflush(stdout); \
+        (void) fdatasync(1); \
+    } while (0)
 #define pr_error(fmt, ...) do { \
         printf(COLOR_RED "[!] %s:%d " COLOR_DEFAULT fmt, __FILE__, __LINE__, ##__VA_ARGS__); \
+        GHOSTLOCK_PERSIST_LOG(); \
         exit(-1); \
     } while (0)
 #define pr_warning(fmt, ...) do { \
         printf(COLOR_RED "[-] %s:%d " COLOR_DEFAULT fmt, __FILE__, __LINE__, ##__VA_ARGS__); \
+        GHOSTLOCK_PERSIST_LOG(); \
     } while (0)
 #define pr_info(fmt, ...) do { \
         printf(COLOR_YELLOW "[*] %s:%d " COLOR_DEFAULT fmt, __FILE__, __LINE__, ##__VA_ARGS__); \
+        GHOSTLOCK_PERSIST_LOG(); \
     } while (0)
 #define pr_success(fmt, ...) do { \
         printf(COLOR_GREEN "[+] %s:%d " COLOR_DEFAULT fmt, __FILE__, __LINE__, ##__VA_ARGS__); \
+        GHOSTLOCK_PERSIST_LOG(); \
     } while (0)
 #endif
 #else
@@ -116,16 +124,20 @@
 #else
 #define pr_error(fmt, ...) do { \
         printf(COLOR_RED "[!] " COLOR_DEFAULT fmt, ##__VA_ARGS__); \
+        GHOSTLOCK_PERSIST_LOG(); \
         exit(-1); \
     } while (0)
 #define pr_warning(fmt, ...) do { \
         printf(COLOR_RED "[-] " COLOR_DEFAULT fmt, ##__VA_ARGS__); \
+        GHOSTLOCK_PERSIST_LOG(); \
     } while (0)
 #define pr_info(fmt, ...) do { \
         printf(COLOR_YELLOW "[*] " COLOR_DEFAULT fmt, ##__VA_ARGS__); \
+        GHOSTLOCK_PERSIST_LOG(); \
     } while (0)
 #define pr_success(fmt, ...) do { \
         printf(COLOR_GREEN "[+] " COLOR_DEFAULT fmt, ##__VA_ARGS__); \
+        GHOSTLOCK_PERSIST_LOG(); \
     } while (0)
 #endif
 #endif
