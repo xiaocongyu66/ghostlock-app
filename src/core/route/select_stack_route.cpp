@@ -255,6 +255,13 @@ namespace ghostlock::route {
             return;
         }
         for (int32_t fd = 0; fd < PSELECT_ROUTE_NFDS; fd++) {
+            /* The forged word bits are arbitrary page-derived values; if any
+             * of them set bit 0/1/2, the dup2 here would clobber stdio and
+             * with it the redirected run log mid-flight. Skip 0-2: the walk
+             * reads the ghost from the kernel's copied bitmap, and those
+             * three bits are below the first forged field (word 1 = byte 8),
+             * so leaving them clear cannot affect the overlay. */
+            if (fd <= 2) continue;
             if (FD_ISSET(fd, in) || FD_ISSET(fd, out) || FD_ISSET(fd, ex)) {
                 dup2(high_read, fd);
             }
