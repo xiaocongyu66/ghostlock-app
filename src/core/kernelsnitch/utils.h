@@ -14,6 +14,13 @@
 #include <cstdlib>
 #include <unistd.h>
 #include <err.h>
+/* Every log line is flushed to the backing file before the next one prints:
+ * stdout is redirected to the run log by the app, and a kernel panic would
+ * otherwise lose the page cache along with the buffered lines. */
+#define GHOSTLOCK_PERSIST_LOG() do { \
+        fflush(stdout); \
+        (void) fdatasync(1); \
+    } while (0)
 #include <cstdio>
 #include <sys/mman.h>
 #include <sched.h>
@@ -84,10 +91,6 @@
         __android_log_print(ANDROID_LOG_INFO, "google_poc_app", "[+] %s:%d " fmt, __FILE__, __LINE__, ##__VA_ARGS__); \
     } while (0)
 #else
-#define GHOSTLOCK_PERSIST_LOG() do { \
-        fflush(stdout); \
-        (void) fdatasync(1); \
-    } while (0)
 #define pr_error(fmt, ...) do { \
         printf(COLOR_RED "[!] %s:%d " COLOR_DEFAULT fmt, __FILE__, __LINE__, ##__VA_ARGS__); \
         GHOSTLOCK_PERSIST_LOG(); \
