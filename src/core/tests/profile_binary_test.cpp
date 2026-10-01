@@ -213,6 +213,16 @@ int32_t main(void) {
         assert(parse_doc(doc, &parsed, release, sizeof(release)) == 0);
         assert(!parsed.geometry.pselect_waiter_shift.has_value());
 
+        /* The zc overlay word offsets decode into the execution settings. */
+        doc = build_doc(
+            ghostlock::profile::kRouteTcpZerocopy, "zcwords",
+            {
+                {"route.tcp_zerocopy", {{"task_word", 0x30}, {"lock_word", 0x38}}},
+            });
+        assert(parse_doc(doc, &parsed, release, sizeof(release)) == 0);
+        assert(parsed.execution.tcp_task_word == 0x30);
+        assert(parsed.execution.tcp_lock_word == 0x38);
+
         /* Duplicated key applies last-wins. */
         doc = build_doc(ghostlock::profile::kRouteTcpZerocopy, "dup",
                         {{"route.tcp_zerocopy", {{"attempts", 1}, {"attempts", 2}}}});

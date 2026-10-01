@@ -173,6 +173,8 @@ namespace ghostlock::binary_profile {
             PLAIN("arm_sequence", execution.tcp_arm_sequence),
             PLAIN("post_receive_hold_iterations",
                   execution.tcp_post_receive_hold_iterations),
+            PLAIN("task_word", execution.tcp_task_word),
+            PLAIN("lock_word", execution.tcp_lock_word),
         };
 
         constexpr Field kRouteSelect[] = {

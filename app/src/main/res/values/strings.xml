@@ -196,6 +196,8 @@
     <string name="field_execution_routes_tcp_zerocopy_arm_sequence">arm_sequence</string>
     <string name="field_execution_routes_tcp_zerocopy_attempts">attempts</string>
     <string name="field_execution_routes_tcp_zerocopy_post_receive_hold_iterations">post_receive_hold_iterations</string>
+    <string name="field_execution_routes_tcp_zerocopy_task_word">task_word</string>
+    <string name="field_execution_routes_tcp_zerocopy_lock_word">lock_word</string>
     <string name="field_execution_selected_cpus_consumer">consumer</string>
     <string name="field_execution_selected_cpus_main">main</string>
     <string name="field_execution_stages_w1_attempts">w1_attempts</string>

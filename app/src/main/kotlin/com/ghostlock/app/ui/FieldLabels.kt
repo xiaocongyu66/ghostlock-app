@@ -49,6 +49,8 @@ private fun fieldLabelRes(path: String): Int? = when (path) {
     "execution.routes.tcp_zerocopy.arm_sequence" -> R.string.field_execution_routes_tcp_zerocopy_arm_sequence
     "execution.routes.tcp_zerocopy.attempts" -> R.string.field_execution_routes_tcp_zerocopy_attempts
     "execution.routes.tcp_zerocopy.post_receive_hold_iterations" -> R.string.field_execution_routes_tcp_zerocopy_post_receive_hold_iterations
+    "execution.routes.tcp_zerocopy.task_word" -> R.string.field_execution_routes_tcp_zerocopy_task_word
+    "execution.routes.tcp_zerocopy.lock_word" -> R.string.field_execution_routes_tcp_zerocopy_lock_word
     "execution.selected_cpus.consumer" -> R.string.field_execution_selected_cpus_consumer
     "execution.selected_cpus.main" -> R.string.field_execution_selected_cpus_main
     "execution.stages.w1_attempts" -> R.string.field_execution_stages_w1_attempts
