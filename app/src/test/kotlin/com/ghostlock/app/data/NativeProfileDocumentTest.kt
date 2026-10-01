@@ -81,7 +81,10 @@ class NativeProfileDocumentTest {
     @Test
     fun `route section carries exactly the route's short keys`() {
         assertEquals(
-            listOf("attempts", "arm_sequence", "post_receive_hold_iterations"),
+            listOf(
+                "attempts", "arm_sequence", "post_receive_hold_iterations",
+                "task_word", "lock_word",
+            ),
             entriesOf(doc("tcp_zerocopy").toBinary(), "route.tcp_zerocopy").map { it.first },
         )
         assertEquals(
