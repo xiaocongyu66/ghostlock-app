@@ -59,16 +59,16 @@ namespace ghostlock::attack {
          * whether the forged words land on the ghost waiter at all, and this
          * dump happens at startup, well before the first futex is touched. */
         {
-            const auto select_layout = profile->select_stack_layout();
             log_exec("routes.select_stack.waiter_shift",
                      static_cast<uint32_t>(
                              static_cast<int32_t>(
-                                     select_layout.waiter_shift.value_or(0))));
+                                     profile->geometry.pselect_waiter_shift
+                                             .value_or(0))));
             log_exec("routes.select_stack.compact_waiter",
                      static_cast<uint32_t>(
-                             select_layout.compact_waiter.value_or(0)));
+                             profile->misc.compact_waiter.value_or(0)));
             log_exec("routes.select_stack.waiter_off",
-                     select_layout.waiter_off.value_or(0));
+                     profile->geometry.pselect_waiter_off.value_or(0));
         }
         log_exec("handoff.pre_dispatch_settle_ms", e->handoff_pre_dispatch_settle_ms);
         log_exec("handoff.module_poll_attempts", e->handoff_module_poll_attempts);
