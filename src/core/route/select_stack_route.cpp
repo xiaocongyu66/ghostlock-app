@@ -341,8 +341,8 @@ namespace ghostlock::route {
                         off >= static_cast<int64_t>(sizeof(img))) continue;
                     value |= static_cast<uint64_t>(bytes[off]) << (8 * b);
                 }
-                pselect_put_global_word(in, out, ex, words_per_set, word,
-                                        value);
+                pselect_put_global_word(in->raw(), out->raw(), ex->raw(),
+                                        words_per_set, word, value);
             }
             pr_info("pselect byte-composite placement off=%u words=%d..%d "
                     "wps=%d\n",
