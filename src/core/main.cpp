@@ -26,6 +26,11 @@ using namespace ghostlock;
 
 
 int main(int argc, char **argv) {
+    /* Line-buffer the redirected stdio: every log line reaches the disk file
+     * immediately, so a kernel panic loses at most the line in flight instead
+     * of the libc's multi-KB buffer. */
+    (void) setvbuf(stdout, nullptr, _IOLBF, 0);
+    (void) setvbuf(stderr, nullptr, _IOLBF, 0);
     try {
         profile::kernel_offsets decoded = {};
         std::array<char, 256> release_buf{};
