@@ -89,6 +89,9 @@ namespace ghostlock::profile {
         uint32_t prio = 0, normal_prio = 0, sched_task_group = 0;
         uint32_t pi_lock = 0, pi_waiters = 0, pi_top_task = 0, pi_blocked_on = 0;
         uint32_t pid = 0, tgid = 0, atomic_flags = 0;
+        /* task_struct.__state: 0x30 on android14-6.1, 0x10 on 6.6. Cleared on
+         * the forged task so wake_up_state() fails the state mask check. */
+        uint32_t state = 0;
         uint32_t real_cred = 0, cred = 0, comm = 0, tasks = 0, seccomp = 0;
     };
 

@@ -121,6 +121,11 @@ namespace ghostlock::profile {
             [](const kernel_offsets &v) { return v.task.pi_lock; }, 0x9EC);
     }
 
+    inline uint32_t fake_task_state_off() {
+        return symbol_u32(
+            [](const kernel_offsets &v) { return v.task.state; }, 0x10);
+    }
+
     inline uint32_t fake_task_pi_waiters_off() {
         return symbol_u32(
             [](const kernel_offsets &v) { return v.task.pi_waiters; }, 0xA00);

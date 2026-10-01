@@ -76,6 +76,7 @@ namespace ghostlock::binary_profile {
             PLAIN("real_cred", task.real_cred), PLAIN("cred", task.cred),
             PLAIN("comm", task.comm), PLAIN("tasks", task.tasks),
             PLAIN("seccomp", task.seccomp),
+            PLAIN("state", task.state),
         };
 
         constexpr Field kCred[] = {

