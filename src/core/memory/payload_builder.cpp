@@ -125,17 +125,6 @@ namespace ghostlock::memory {
         return 1;
     }
 
-    void build_multicast_waiter_payload(
-        unsigned char *buffer, size_t waiter_offset, size_t task_offset,
-        size_t lock_offset, uintptr_t fake_task, uintptr_t fake_lock) {
-        if (!buffer) return;
-        const size_t required = waiter_offset +
-                                std::max(task_offset, lock_offset) + sizeof(uint64_t);
-        (void) encode_multicast_waiter(
-            {reinterpret_cast<std::byte *>(buffer), required}, waiter_offset,
-            task_offset, lock_offset, fake_task, fake_lock);
-    }
-
     int32_t payload_builder_fixed_vector_test(void) {
         static const struct {
             uintptr_t target;
@@ -181,23 +170,23 @@ namespace ghostlock::memory {
         rejected.right = 0;
         if (payload_write_layout_matches_request(&w1, &rejected)) return 0;
 
-        std::array < unsigned char, 0x80 > legacy_stamp{};
-        std::array < unsigned char, 0x80 > current_stamp{};
-        store64(legacy_stamp.data(), 0x20 + 0x28, 0xffffff8800005800ULL);
-        store64(legacy_stamp.data(), 0x20 + 0x30, 0xffffff8800001000ULL);
-        build_multicast_waiter_payload(
-            current_stamp.data(), 0x20, 0x28, 0x30,
-            0xffffff8800005800ULL, 0xffffff8800001000ULL);
-        if (memcmp(legacy_stamp.data(), current_stamp.data(),
-                   legacy_stamp.size()) != 0)
+        std::array < unsigned char, 0x80 > tree_stamp{};
+        const uint64_t expect_pc = 0xffffff8800001000ULL | 1; /* RED parent */
+        const uint64_t expect_wv = 0xffffff8800005800ULL;     /* write value */
+        if (!encode_multicast_w1_tree(
+            {reinterpret_cast<std::byte *>(tree_stamp.data()), tree_stamp.size()},
+            0x20, 0xffffff8800001008ULL, 0xffffff8800005800ULL))
+            return 0;
+        if (load64(tree_stamp.data(), 0x20) != expect_pc ||
+            load64(tree_stamp.data(), 0x28) != 0 ||
+            load64(tree_stamp.data(), 0x30) != expect_wv)
             return 0;
         std::byte undersized[0x2f]{};
         if (encode_compact_waiter(undersized, w1, rejected)) return 0;
-        /* Multicast geometry that would run past the supplied span is rejected
-     * instead of written out of bounds. */
+        /* Multicast W1 tree geometry that would run past the supplied span is
+     * rejected instead of written out of bounds. */
         std::array<std::byte, 0x40> multicast_small{};
-        if (encode_multicast_waiter(
-            multicast_small, 0x20, 0x28, 0x30, 0x1111, 0x2222))
+        if (encode_multicast_w1_tree(multicast_small, 0x20, 0x1111, 0x2222))
             return 0;
         return 1;
     }

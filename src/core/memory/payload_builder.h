@@ -84,10 +84,6 @@ namespace ghostlock::memory {
     int32_t payload_write_layout_accepts_page(
         const WriteRequest *request, const PayloadWriteLayout *layout);
 
-    void build_multicast_waiter_payload(
-        unsigned char *buffer, size_t waiter_offset, size_t task_offset,
-        size_t lock_offset, uintptr_t fake_task, uintptr_t fake_lock);
-
     /* Fixed request/layout vectors, including the upstream unified compact arm. */
     int32_t payload_builder_fixed_vector_test(void);
 } // namespace ghostlock::memory
